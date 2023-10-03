@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">    
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+    
+    <title>Home</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://getbootstrap.com/docs/5.3/assets/js/color-modes.js"></script>
+    
+    <style>
+    .progresses{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .line{
+      width: 120px;
+      height: 8px;
+      background: #63d19e;
+    }
+    
+    .line_empty{
+      width: 120px;
+      height: 8px;
+      background: #d3d3d3;
+    }
+    
+    .steps{
+    
+      display: flex;
+      background-color: #63d19e;
+      color: #fff;
+      font-size: 18px;
+      width: 60px;
+      height: 60px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    
+    }
+    
+    .steps_current {
+      display: flex;
+      background-color: #55a781;
+      color: #fff;
+      font-size: 18px;
+      width: 60px;
+      height: 60px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    
+    }
+    
+    .steps_next {
+      display: flex;
+      background-color: #d3d3d3;
+      color: #fff;
+      font-size: 18px;
+      width: 60px;
+      height: 60px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%; 
+}    
+
+    .add_org {
+      border: 2px solid #f8f9fa;
+
+    }	
+    .add_org:hover {
+    border: 2px solid #63d19e;
+    cursor: pointer;
+    }
+    
+    .add_host {
+      border: 1px solid #a7a7a7;
+      border-radius: 100%;
+      width: 60px;
+      line-height: 60px;
+      cursor: pointer;
+      color: #a7a7a7;
+      height: 60px;    
+    
+    }
+    
+    .add_host:hover {
+      border: 1px solid #858585;
+      color: #858585;    
+    }
+    
+    .input-xl {
+      width: 360px;
+      max-width: 100%;
+    }
+    </style>
+    
+    <script>
+    let csr_country, csr_state, csr_locality,  csr_organization,  csr_org_unit,  csr_hosts, orgs = {};
+    
+    function gov_org_load(element) {
+      const find_orgs = document.getElementById('add_org');
+      const find_org = find_orgs.getElementsByClassName("added_org");
+      const find_org_length = find_org.length;
+
+      
+      document.getElementById('step1').innerHTML = '<span><i class="fa fa-check"></i></span>';
+      document.getElementById('step1').classList.remove('steps_current');
+      document.getElementById('step1').classList.add('steps');
+      document.getElementById('line1').classList.remove('line_empty');
+      document.getElementById('line1').classList.add('line');    
+
+
+      document.getElementById('step2').classList.remove('steps_next');
+      document.getElementById('step2').classList.add('steps_current');
+      
+
+      orgs["reports"] = [];
+      
+      for (let i = 0; i < find_org_length; i++)
+          orgs["reports"].push(JSON.parse(find_org[i].getAttribute("data-json")));
+
+      
+      
+      Array.from(find_org).forEach(org => {
+        org.remove();
+      });
+      
+      document.getElementById('description').textContent = 'Organizations with access to non-personalized readings (eg Goverment Authority etc)';
+       
+      element.setAttribute( "onclick", "javascript: deya_org_load(this);" );
+      load_reports("readings");
+    }
+ 
+
+    function deya_org_load(element) {
+      const find_orgs = document.getElementById('add_org');
+      const find_org = find_orgs.getElementsByClassName("added_org");
+      const find_org_length = find_org.length;
+
+      document.getElementById('step2').innerHTML = '<span><i class="fa fa-check"></i></span>';
+      document.getElementById('step2').classList.remove('steps_current');
+      document.getElementById('step2').classList.add('steps');
+      document.getElementById('line2').classList.remove('line_empty');
+      document.getElementById('line2').classList.add('line');    
+
+
+      document.getElementById('step3').classList.remove('steps_next');
+      document.getElementById('step3').classList.add('steps_current');  
+
+      orgs["readings"] = [];
+      
+      for (let i = 0; i < find_org_length; i++)
+          orgs["readings"].push(JSON.parse(find_org[i].getAttribute("data-json")));
+
+      Array.from(find_org).forEach(org => {
+        org.remove();
+      });
+      
+      document.getElementById('description').textContent = 'Organizations with all access (eg Water company etc)';
+       
+      element.setAttribute( "onclick", "javascript: finish_load(this);" );
+      load_reports("info");
+    }    
+    
+    function finish_load(element) {
+      const find_orgs = document.getElementById('add_org');
+      const find_org = find_orgs.getElementsByClassName("added_org");
+      const find_org_length = find_org.length;
+
+      document.getElementById('step3').innerHTML = '<span><i class="fa fa-check"></i></span>';
+      document.getElementById('step3').classList.remove('steps_current');
+      document.getElementById('step3').classList.add('steps');      
+      
+      orgs["info"] = [];
+      
+      for (let i = 0; i < find_org_length; i++)
+          orgs["info"].push(JSON.parse(find_org[i].getAttribute("data-json")));
+
+      document.getElementById('add_org').textContent = '';
+      document.getElementById('existing_container').textContent = '';
+      
+      element.remove();
+      
+      document.getElementById('description').textContent = 'Run the following commands on the respective host';   
+      
+
+      let xhr = new XMLHttpRequest(); 
+      xhr.onreadystatechange = function() {
+          if (xhr.readyState == XMLHttpRequest.DONE) {
+              alert(JSON.parse(xhr.responseText));
+  
+          }
+      }
+      xhr.open("POST", './network');
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhr.send(JSON.stringify(orgs));
+
+
+    }  
+    
+
+    
+  document.addEventListener("DOMContentLoaded", (event) => {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            const response = JSON.parse(xhr.responseText);
+            csr_country = response["csr_country"];
+            csr_state = response["csr_state"];
+            csr_locality = response["csr_locality"];
+            csr_organization = response["csr_organization"];
+            csr_org_unit = response["csr_org_unit"];
+            csr_hosts = response["csr_hosts"];
+
+        }
+    }
+    xhr.open('GET', '/cert', true);
+    xhr.send(null);
+
+    load_reports("reports");
+  });
+  
+  function load_reports(url) {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+            document.getElementById("existing_org").innerHTML = '';
+            for (let org in response["result"])
+              document.getElementById("existing_org").insertAdjacentHTML("afterbegin", '<div class="col-xl-3 col-lg-4 col-sm-6 col-12 mb-3"><div class="card shadow rounded bg-light text-dark add_org"> <div class="card-content"><div class="card-body"> <div class="align-content-start flex-nowrap d-flex text-break"><div class="flex-grow-1"> <h3>'+response["result"][org]["name"]+'</h3> <span>'+response["result"][org]["hosts"].toString()+'</span></div><div class="align-self-center"> <i class="icon-orderer h1 float-end"></i></div></div></div></div></div></div>');
+          }
+
+        }
+    }
+    xhr.open('GET', '/'+url, true);
+    xhr.send(null);  
+  
+  }
+  
+  
+  function load_modal() {
+    document.getElementById("org_name").value = '';
+    document.getElementById("org_country").value = csr_country;
+    document.getElementById("org_state").value = csr_state;
+    document.getElementById("org_locality").value = csr_locality;
+    document.getElementById("org_organization").value = csr_organization;
+    document.getElementById("org_unit").value = csr_org_unit; 
+     
+    document.getElementById("org_hosts").innerHTML = '';  
+    add_host();
+    
+    
+  }
+    
+  function add_host() {
+    document.getElementById("org_hosts").insertAdjacentHTML("beforeend", '<div class="row g-3 align-items-center mb-3"> <div class="col-auto"> <label class="col-form-label">Host: </label> </div><div class="col-auto"> <input type="text" class="form-control input-xl" maxlength="255" title="Organizational Unit"> </div></div>');
+  
+  }
+
+  function add_org() {
+    
+      
+    let org_obj = {};
+    const org_name = document.getElementById("org_name").value;
+    if (!org_name.length) {
+      alert("Fill organization name input");
+      return;
+    }
+    
+    if (!document.getElementById("org_name").checkValidity()) {
+      alert("Organization name is not valid");
+      return;
+    }
+
+    const org_country = document.getElementById("org_country").value;
+    if (!org_country.length) {
+      alert("Fill country input");
+      return;
+    }    
+    
+    const org_state = document.getElementById("org_state").value;
+    if (!org_state.length) {
+      alert("Fill state input");
+      return;
+    }
+    
+    const org_locality = document.getElementById("org_locality").value;
+    if (!org_locality.length) {
+      alert("Fill locality input");
+      return;
+    }
+    
+    const org_organization = document.getElementById("org_organization").value;
+    if (!org_organization.length) {
+      alert("Fill organization input");
+      return;
+    }
+    
+    const org_unit = document.getElementById("org_unit").value;
+     if (!org_unit.length) {
+      alert("Fill organizational unit input");
+      return;
+    }
+    
+    org_obj["name"] = org_name;
+    org_obj["country"] = org_country;
+    org_obj["state"] = org_state;
+    org_obj["locality"] = org_locality;
+    org_obj["organization"] = org_organization;
+    org_obj["unit"] = org_unit;
+
+    org_obj["hosts"] = [];
+    const hosts_element = document.getElementById("org_hosts");  
+    const hosts_inputs = hosts_element.getElementsByClassName("input-xl");
+    
+    for (let i = 0; i < hosts_inputs.length; i++) {
+      if ((hosts_inputs[i].value).length)
+        org_obj["hosts"].push(hosts_inputs[i].value);
+    }
+ 
+    if (document.getElementById('step3').classList.contains('steps_current') && org_obj["hosts"].length < 2) {
+      alert("Add at least two host");
+      return;
+    }
+        
+    if (!org_obj["hosts"].length) {
+      alert("Add at least one host");
+      return;
+    }
+
+    
+    document.getElementById("add_org").insertAdjacentHTML("afterbegin", '<div class="col-xl-3 col-lg-4 col-sm-6 col-12 mb-3 added_org" data-json=\''+JSON.stringify(org_obj)+'\'><div class="card shadow rounded bg-light text-dark add_org"> <div class="card-content"><div class="card-body"> <div class="align-content-start flex-nowrap d-flex text-break"><div class="flex-grow-1"> <h3>'+org_name+'</h3> <span>'+org_obj["hosts"].toString()+'</span></div><div class="align-self-center"> <i class="icon-orderer h1 float-end"></i></div></div></div></div></div></div>');
+    bootstrap.Modal.getInstance('#modal').hide();
+    
+  }
+
+        
+    </script>
+  </head>
+  <body class="p-0 m-0 border-0">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+      <symbol id="check2" viewBox="0 0 16 16">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+      </symbol>
+      <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+      </symbol>
+      <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+      </symbol>
+      <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+      </symbol>
+      
+      <symbol id="download" viewBox="0 0 16 16">
+      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+      </symbol>
+    
+      
+    </svg>
+    <nav class="navbar navbar-expand-xl bg-body-tertiary sticky-top shadow-sm user-select-none mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" style="flex:1;">SUSANNA Dashboard</a>
+        </a>
+
+
+        
+          <ul class="navbar-nav flex-row justify-content-end pe-3">
+            <li class="nav-item dropdown">
+              <button class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static" aria-label="Toggle theme (dark)">
+                <svg class="bi my-1 theme-icon-active"><use href="#moon-stars-fill"></use></svg>
+                <span class="d-lg-none ms-2" id="bd-theme-text"></span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end position-absolute" aria-labelledby="bd-theme-text">
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                    <svg class="bi me-2 opacity-50 theme-icon"><use href="#sun-fill"></use></svg>
+                    Light
+                    <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="dark" aria-pressed="true">
+                    <svg class="bi me-2 opacity-50 theme-icon"><use href="#moon-stars-fill"></use></svg>
+                    Dark
+                    <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="false">
+                    <svg class="bi me-2 opacity-50 theme-icon"><use href="#circle-half"></use></svg>
+                    Auto
+                    <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                  </button>
+              </li>
+            </ul>
+          </li>
+
+          
+        </div>
+      
+    </nav>
+
+
+
+      <div class="progresses">
+      
+      
+        <div class="steps_current" id="step1">
+          <span>1</span>
+        </div>
+        
+        <span class="line_empty" id="line1"></span>
+        
+        <div class="steps_next" id="step2">
+          <span>2</span>
+        </div>
+        
+        
+        <span class="line_empty" id="line2"></span>
+        
+        <div class="steps_next" id="step3">
+          <span>3</span>
+        </div>
+    
+    </div>    
+        
+    </div>
+    
+<div class="container-fluid mt-4 ps-4 pe-4" id="container">
+
+<div class="modal modal-xl fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ngo_modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Add new organization</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      <form id="org_form">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">Organization Name: </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_name" oninput="this.value=this.value.toLowerCase()" maxlength="100" pattern="[a-z0-9_]{1,}" title="Organization Name">
+          </div>
+
+        </div>
+        
+        <hr>
+        <h4 class="text-center">Certificate Info</h4>
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">Country (C): </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_country" oninput="this.value=this.value.toUpperCase()" maxlength="2" pattern="[A-Z]{1,2}" title="Country">
+          </div>
+
+        </div>        
+ 
+
+
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">State (ST): </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_state" maxlength="100" pattern="[a-zA-Z0-9_]{1,}" title="State">
+          </div>
+
+        </div> 
+ 
+        
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">Locality (L): </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_locality" maxlength="100" pattern="[a-zA-Z0-9_]{1,}" title="Locality">
+          </div>
+
+        </div>        
+
+        
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">Organization (O): </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_organization" maxlength="100" pattern="[a-zA-Z0-9_]{1,}" title="Organization">
+          </div>
+
+        </div>
+
+        
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="col-form-label">Organizational Unit (OU): </label>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" id="org_unit" maxlength="100" pattern="[a-zA-Z0-9_]{1,100}" title="Organizational Unit">
+          </div>
+
+        </div>
+        
+        </form>
+        <hr>
+        <h4 class="text-center">Hosts</h4>
+        
+        <div id="org_hosts">
+          <div class="row g-3 align-items-center mb-3">
+            <div class="col-auto">
+              <label class="col-form-label">Host: </label>
+            </div>
+            <div class="col-auto">
+              <input type="text" class="form-control input-xl" maxlength="255" title="Organizational Unit">
+            </div>
+  
+          </div>        
+        
+        </div>
+        <div onclick="add_host()" class="text-center"><h1><i class="fa fa-plus add_host"></i></h1></div>
+        
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="add_org()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <div class="d-flex align-items-center justify-content-center mb-4"><h1 class="h4 mb-0 text-gray-800 text-center" id="description">Organizations with access to statistical reports (eg NGO, University, Research center etc)</h1></div>
+				
+		<div class="row mt-3 align-items-center" id="add_org">
+				
+		  <div class="col-xl-3 col-lg-4 col-sm-6 col-12 mb-3" data-bs-toggle="modal" data-bs-target="#modal" onclick="load_modal()">
+				<div class="card shadow rounded bg-light text-dark add_org">
+				  <div class="card-content">
+					<div class="card-body">
+					  <div class="align-content-start flex-nowrap d-flex text-break">
+						<div class="flex-grow-1 text-center">
+						  <h1><i class="fa fa-plus"></i></h1>
+						  <span>Add new organization</span>
+						</div>
+						<div class="align-self-center">
+						  <i class="icon-orderer h1 float-end"></i>
+						</div>
+					  </div>
+
+					</div>
+      </div>
+    </div>
+  </div>   
+   
+</div>
+<div id="existing_container">    
+  <hr>
+    <div class="d-flex align-items-center justify-content-center mb-4"><h1 class="h5 mb-0 text-gray-800 text-center">Existing organizations</h1></div>
+  <div class="row mt-3 align-items-center" id="existing_org"></div>
+</div>    
+  <div class="mt-5 text-center">
+    <button type="button" class="btn btn-lg btn-success" onclick="gov_org_load(this);">Next</button>
+  </div>    
+  </body>
+  
+</html>
